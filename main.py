@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import os, uuid
 from utils import download_file, generate_scene, concatenate_videos
@@ -7,6 +8,7 @@ app = FastAPI()
 
 TEMP_DIR = "/mnt/data"
 
+# Pydantic models
 class MediaItem(BaseModel):
     image_url: str
     audio_url: str
@@ -15,6 +17,7 @@ class MediaItem(BaseModel):
 class MediaRequest(BaseModel):
     media: list[MediaItem]
 
+# Video generation endpoint
 @app.post("/generate")
 async def generate_video(request: MediaRequest):
     scene_paths = []
@@ -35,8 +38,9 @@ async def generate_video(request: MediaRequest):
     final_output = os.path.join(TEMP_DIR, "output.mp4")
     concatenate_videos(scene_paths, final_output)
 
-    return {"video_url": "/download/output.mp4"}
+    return {"video_url": f"/download/output.mp4"}
 
+# Download endpoint
 @app.get("/download/{filename}")
 def download(filename: str):
     path = os.path.join(TEMP_DIR, filename)
